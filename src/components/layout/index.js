@@ -11,25 +11,11 @@ const defaultMenus = [
     path: '/',
     name: 'welcome',
     icon: 'smile',
-    routes: [
-      {
-        path: '/welcome',
-        name: 'one',
-        icon: 'smile',
-        routes: [
-          {
-            path: '/welcome/welcome',
-            name: 'two',
-            icon: 'smile',
-            exact: true,
-          },
-        ],
-      },
-    ],
+    routes: [],
   },
   {
-    path: '/demo',
-    name: 'demo',
+    path: '/core',
+    name: 'core',
     icon: 'heart',
   },
 ];
@@ -48,9 +34,10 @@ export default ({children}) => (
     }}
     fixSiderbar
     location={{
-      pathname: '/welcome/welcome',
+      pathname: '/',
     }}
     menu={{ request: async () => loopMenuItem(defaultMenus) }}
+    pageTitleRender={false}
   >
     <PageContainer content={children}>
     </PageContainer>
