@@ -21,7 +21,7 @@ const defaultMenus = [
 ];
 
 const loopMenuItem = (menus) =>
-  menus.map(({ icon, routes, ...item }) => ({
+  menus?.map(({ icon, routes, ...item }) => ({
     ...item,
     icon: icon && IconMap[icon],
     children: routes && loopMenuItem(routes),

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Typography, Button, Card, Statistic } from "antd";
+import { Typography, Button, Card, Statistic, Flex } from "antd";
 import { deepCopy, md2html } from "../../utils/utils";
 import { SETTING } from "../../utils/colorSetting";
 import { ProCard } from "@ant-design/pro-components";
+import QuestionAndAnswer from "../../components/questionAndAnswer";
 
 const { Divider } = ProCard;
 const { Title, Paragraph, Text, Link } = Typography;
@@ -377,7 +378,7 @@ const PANEL = {
 
         // 将二维数组中的每一行用^^连接，每一列用##连接，组成一个字符串
         data = data
-            .map(function (row) {
+            ?.map(function (row) {
                 return row.join("##");
             })
             .join("^^");
@@ -400,7 +401,7 @@ const MODE_FillingTheBlank = {
         Q_A = rawContent.split("^^");
         Q_A.shift();
         let finalContent = [];
-        finalContent = Q_A.map((e) => {
+        finalContent = Q_A?.map((e) => {
             let t = e.split("##");
             return [t[0], t[t.length - 1]];
         });
@@ -570,7 +571,7 @@ const MODE_Choosing = {
         Q_A = rawContent.split("^^");
         Q_A.shift();
         let finalContent = [];
-        finalContent = Q_A.map((e) => {
+        finalContent = Q_A?.map((e) => {
             let t = e.split("##");
             return [t[0], t[t.length - 1]];
         });
@@ -912,48 +913,88 @@ class Core extends React.PureComponent {
         super(props);
         let { turnTo } = props;
         this.state = {
-            responsive: false
+            books: props.books || [],
+            questionQueue: [["default", "默认"]],
+            currentMode: "",
+            currentQuestion: ["default", "默认"],
+            showAns: false,
         };
     }
+
+    getNewQuestionQueue() {
+        let allQuestion = [];
+        this.books?.map((book) => {
+            allQuestion = allQuestion.concat(book.contentArray);
+        });
+        allQuestion.sort(() => Math.random() - 0.5); // 打乱数组
+        return allQuestion;
+    }
+
+    setQuestion() {
+        this.setState((preState) => ({
+            showAns: false,
+            currentQuestion: preState.questionQueue[0],
+        }));
+    }
+
+    nextQuestion() {
+        // todo: 加载下一个问题
+        // 弹出问题队列的第一个问题
+        // 如果问题队列没有问题, 则重新生成问题队列
+        if (this.state.questionQueue.length <= 1) {
+            let allQuestion = this.getNewQuestionQueue();
+            this.setState((preState) => ({
+                questionQueue: allQuestion,
+            }));
+        } else {
+            this.setState((preState) => ({
+                questionQueue: preState.questionQueue.shift(),
+            }));
+        }
+        this.setQuestion();
+    }
+
+    componentDidMount() {
+        // 抽取所有书籍
+        BOOKS.GetBooksFromLocalStorage();
+        this.setState((preState) => ({
+            books: BOOKS.filter((book) => preState.books.includes(book)),
+            currentMode: "选择类型",
+        }));
+        // 得出问题库和答案库
+        this.setState((preState) => ({
+            questionQueue: this.getNewQuestionQueue(),
+        }));
+        // 问题初始化, 取出第一个问题
+        this.setQuestion();
+    }
+
+    nextButtonClick() {
+        if (this.state.showAns) {
+            this.nextQuestion();
+        } else {
+            this.setState((preState) => ({
+                showAns: true,
+            }));
+        }
+    }
+
     render() {
         return (
             <>
-                <ProCard
-                    style={{ marginBlockStart: 8 }}
-                    gutter={[16, 16]}
-                    wrap
-                    title=""
-                >
-                    <ProCard
-                        colSpan={{ xs: 24, sm: 12, md: 12, lg: 12, xl: 12 }}
-                        layout="center"
-                        bordered
-                    >
-                        Col
-                    </ProCard>
-                    <ProCard
-                        colSpan={{ xs: 24, sm: 12, md: 12, lg: 12, xl: 12 }}
-                        layout="center"
-                        bordered
-                    >
-                        Col
-                    </ProCard>
-                    <ProCard
-                        colSpan={{ xs: 24, sm: 12, md: 12, lg: 12, xl: 12 }}
-                        layout="center"
-                        bordered
-                    >
-                        Col
-                    </ProCard>
-                    <ProCard
-                        colSpan={{ xs: 24, sm: 12, md: 12, lg: 12, xl: 12 }}
-                        layout="center"
-                        bordered
-                    >
-                        Col
-                    </ProCard>
-                </ProCard>
-                
+                <QuestionAndAnswer
+                    qa={this.state.currentQuestion}
+                    showAns={this.state.showAns}
+                    mode={this.state.currentMode}
+                />
+
+                <Flex justify={"space-around"} align={"center"}>
+                    <Button>收藏</Button>
+                    <Button onClick={this.nextButtonClick}>
+                        {this.state.showAns ? "下一题" : "忘了"}
+                    </Button>
+                </Flex>
+
                 <ProCard>
                     <ProCard.Group
                         title="核心指标"
@@ -967,7 +1008,11 @@ class Core extends React.PureComponent {
                             />
                         </ProCard>
                         <Divider
-                            type={this.state.responsive ? "horizontal" : "vertical"}
+                            type={
+                                this.state.responsive
+                                    ? "horizontal"
+                                    : "vertical"
+                            }
                         />
                         <ProCard>
                             <Statistic
@@ -977,7 +1022,11 @@ class Core extends React.PureComponent {
                             />
                         </ProCard>
                         <Divider
-                            type={this.state.responsive ? "horizontal" : "vertical"}
+                            type={
+                                this.state.responsive
+                                    ? "horizontal"
+                                    : "vertical"
+                            }
                         />
                         <ProCard>
                             <Statistic
@@ -987,7 +1036,11 @@ class Core extends React.PureComponent {
                             />
                         </ProCard>
                         <Divider
-                            type={this.state.responsive ? "horizontal" : "vertical"}
+                            type={
+                                this.state.responsive
+                                    ? "horizontal"
+                                    : "vertical"
+                            }
                         />
                         <ProCard>
                             <Statistic title="冻结金额" value={112893.0} />

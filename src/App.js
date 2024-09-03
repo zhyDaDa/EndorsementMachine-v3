@@ -1,5 +1,6 @@
 import { Suspense, useState, useTransition } from 'react';
 import Layout from './components/layout';
+import QuestionAndAnswer from './components/questionAndAnswer';
 import Welcome from './pages/welcome';
 import Core from './pages/core';
 
@@ -24,6 +25,11 @@ function Router() {
   let content;
   switch (page) {
     case '/':
+      content = (
+        <QuestionAndAnswer qa={["问题", "答案"]} turnTo={turnTo} />
+      );
+      break;
+    case '/welcome':
       content = (
         <Welcome turnTo={turnTo} />
       );
