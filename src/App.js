@@ -3,6 +3,7 @@ import Layout from './components/layout';
 import QuestionAndAnswer from './components/questionAndAnswer';
 import Welcome from './pages/welcome';
 import Core from './pages/core';
+import { message } from 'antd';
 
 export default function App() {
   return (
@@ -13,7 +14,7 @@ export default function App() {
 }
 
 function Router() {
-  const [page, setPage] = useState('/');
+  const [page, setPage] = useState(window.location.pathname);
   const [isPending, startTransition] = useTransition();
 
   function turnTo(url) {

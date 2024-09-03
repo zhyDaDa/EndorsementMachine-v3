@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Typography, Button, Card, Statistic, Flex } from "antd";
+import { Typography, Button, Card, Statistic, Flex, TreeSelect } from "antd";
+import { SettingOutlined, CloseOutlined } from "@ant-design/icons";
 import { deepCopy, md2html } from "../../utils/utils";
 import { SETTING } from "../../utils/colorSetting";
 import { ProCard } from "@ant-design/pro-components";
@@ -914,10 +915,11 @@ class Core extends React.PureComponent {
         let { turnTo } = props;
         this.state = {
             books: props.books || [],
+            chosenBooks: props.books || [],
             questionQueue: [["default", "默认"]],
             currentMode: "",
             currentQuestion: ["default", "默认"],
-            showAns: false,
+            showAnsFlag: false,
         };
     }
 
@@ -932,7 +934,7 @@ class Core extends React.PureComponent {
 
     setQuestion() {
         this.setState((preState) => ({
-            showAns: false,
+            showAnsFlag: false,
             currentQuestion: preState.questionQueue[0],
         }));
     }
@@ -957,24 +959,30 @@ class Core extends React.PureComponent {
     componentDidMount() {
         // 抽取所有书籍
         BOOKS.GetBooksFromLocalStorage();
+        // this.setState((preState) => ({
+        //     books: BOOKS.books.filter((book) => preState.books.includes(book)),
+        //     currentMode: "选择类型",
+        // }));
+        // // 得出问题库和答案库
+        // this.setState((preState) => ({
+        //     questionQueue: this.getNewQuestionQueue(),
+        // }));
+        // // 问题初始化, 取出第一个问题
+        // this.setQuestion();
+    }
+
+    showAns() {
         this.setState((preState) => ({
-            books: BOOKS.filter((book) => preState.books.includes(book)),
-            currentMode: "选择类型",
+            showAnsFlag: true,
         }));
-        // 得出问题库和答案库
-        this.setState((preState) => ({
-            questionQueue: this.getNewQuestionQueue(),
-        }));
-        // 问题初始化, 取出第一个问题
-        this.setQuestion();
     }
 
     nextButtonClick() {
-        if (this.state.showAns) {
+        if (this.state.showAnsFlag) {
             this.nextQuestion();
         } else {
             this.setState((preState) => ({
-                showAns: true,
+                showAnsFlag: true,
             }));
         }
     }
@@ -984,27 +992,57 @@ class Core extends React.PureComponent {
             <>
                 <QuestionAndAnswer
                     qa={this.state.currentQuestion}
-                    showAns={this.state.showAns}
+                    showAns={()=>{this.showAns()}}
+                    showAnsFlag={this.state.showAnsFlag}
                     mode={this.state.currentMode}
+                    onCorrect={()=>{}}
+                    onWrong={()=>{}}
                 />
 
-                <Flex justify={"space-around"} align={"center"}>
-                    <Button>收藏</Button>
-                    <Button onClick={this.nextButtonClick}>
-                        {this.state.showAns ? "下一题" : "忘了"}
-                    </Button>
-                </Flex>
+                <Card style={{ marginBlockStart: 8 }}>
+                    <Flex justify={"space-around"} align={"center"}>
+                        <Button size={"large"} disabled={this.state.books.length < 1}>
+                            收藏
+                        </Button>
+                        <Divider
+                            type={
+                                this.state.responsive
+                                    ? "horizontal"
+                                    : "vertical"
+                            }
+                        />
+                        <Button
+                            onClick={() => {
+                                this.nextButtonClick();
+                            }}
+                            disabled={this.state.books.length < 1}
+                        >
+                            {this.state.showAnsFlag ? "下一题" : "忘了"}
+                        </Button>
+                    </Flex>
+                </Card>
 
-                <ProCard>
+                <ProCard style={{ marginBlockStart: 8 }}>
                     <ProCard.Group
-                        title="核心指标"
+                        title="辞书配置"
                         direction={this.state.responsive ? "column" : "row"}
                     >
                         <ProCard>
+                            <Statistic title="本次背词计数" value={0} />
+                        </ProCard>
+                        <Divider
+                            type={
+                                this.state.responsive
+                                    ? "horizontal"
+                                    : "vertical"
+                            }
+                        />
+                        <ProCard>
                             <Statistic
-                                title="今日UV"
-                                value={79.0}
+                                title="准确率"
+                                value={100.0}
                                 precision={2}
+                                suffix="%"
                             />
                         </ProCard>
                         <Divider
@@ -1014,36 +1052,40 @@ class Core extends React.PureComponent {
                                     : "vertical"
                             }
                         />
-                        <ProCard>
-                            <Statistic
-                                title="冻结金额"
-                                value={112893.0}
-                                precision={2}
-                            />
-                        </ProCard>
-                        <Divider
-                            type={
-                                this.state.responsive
-                                    ? "horizontal"
-                                    : "vertical"
+                        <ProCard
+                            title=<Text type="secondary">辞书选择</Text>
+                            style={{ maxWidth: 300 }}
+                            actions={
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        padding: 12,
+                                        flex: 1,
+                                        gap: 8,
+                                    }}
+                                >
+                                    <SettingOutlined key="setting" />
+                                    应用设置
+                                </div>
                             }
-                        />
-                        <ProCard>
-                            <Statistic
-                                title="信息完整度"
-                                value={93}
-                                suffix="/ 100"
+                        >
+                            <TreeSelect
+                                showSearch
+                                style={{ width: "100%" }}
+                                value={this.state.chosenBooks}
+                                dropdownStyle={{
+                                    maxHeight: 400,
+                                    overflow: "auto",
+                                }}
+                                placeholder="Please select"
+                                allowClear
+                                multiple
+                                treeDefaultExpandAll
+                                // onChange={onChange}
+                                treeData={this.state.books.map((book) => book.name)}
                             />
-                        </ProCard>
-                        <Divider
-                            type={
-                                this.state.responsive
-                                    ? "horizontal"
-                                    : "vertical"
-                            }
-                        />
-                        <ProCard>
-                            <Statistic title="冻结金额" value={112893.0} />
                         </ProCard>
                     </ProCard.Group>
                 </ProCard>
