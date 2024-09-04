@@ -31,13 +31,13 @@ const QuestionAndAnswer = ({
         setCanChoose(false);
         showAns();
         if (choice < 0 || choice >= answers.length) {
-            message.error("未作答");
+            // message.error("未作答");
             if (typeof onWrong === "function") onWrong();
         } else if (choice === correctIndex) {
-            message.success(`选择了${choice}，正确！`);
+            // message.success(`选择了${choice}，正确！`);
             if (typeof onCorrect === "function") onCorrect();
         } else {
-            message.error(`选择了${choice}，错误！`);
+            // message.error(`选择了${choice}，错误！`);
             if (typeof onWrong === "function") onWrong();
         }
     };
@@ -92,7 +92,7 @@ const QuestionAndAnswer = ({
                                             <Text>&nbsp;</Text>
                                         )
                                     ) : (
-                                        <Text> !</Text>
+                                        <Text>&nbsp;</Text>
                                     )
                                 }
                                 className="answer-card"

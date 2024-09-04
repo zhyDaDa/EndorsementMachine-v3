@@ -958,6 +958,7 @@ class Core extends React.PureComponent {
         this.setQuestion();
     }
 
+    // div: 初始化
     componentDidMount() {
         // 抽取所有书籍
         BOOKS.GetBooksFromLocalStorage();
