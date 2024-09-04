@@ -72,6 +72,7 @@ const QuestionAndAnswer = ({
                     choose(value);
                 }}
                 disabled={!canChoose}
+                className="answer-group"
             >
                 {typeof answers?.map === "function" ? (
                     answers?.map((ans, index) => {
@@ -88,10 +89,10 @@ const QuestionAndAnswer = ({
                                                 正确答案
                                             </Text>
                                         ) : (
-                                            ""
+                                            <Text>&nbsp;</Text>
                                         )
                                     ) : (
-                                        ""
+                                        <Text> !</Text>
                                     )
                                 }
                                 className="answer-card"

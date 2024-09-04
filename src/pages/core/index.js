@@ -5,6 +5,7 @@ import { deepCopy, md2html } from "../../utils/utils";
 import { SETTING } from "../../utils/colorSetting";
 import { ProCard } from "@ant-design/pro-components";
 import QuestionAndAnswer from "../../components/questionAndAnswer";
+import RcResizeObserver from "rc-resize-observer";
 
 const { Divider } = ProCard;
 const { Title, Paragraph, Text, Link } = Typography;
@@ -920,6 +921,7 @@ class Core extends React.PureComponent {
             currentMode: "",
             currentQuestion: ["default", "默认"],
             showAnsFlag: false,
+            responsive: false,
         };
     }
 
@@ -992,16 +994,21 @@ class Core extends React.PureComponent {
             <>
                 <QuestionAndAnswer
                     qa={this.state.currentQuestion}
-                    showAns={()=>{this.showAns()}}
+                    showAns={() => {
+                        this.showAns();
+                    }}
                     showAnsFlag={this.state.showAnsFlag}
                     mode={this.state.currentMode}
-                    onCorrect={()=>{}}
-                    onWrong={()=>{}}
+                    onCorrect={() => {}}
+                    onWrong={() => {}}
                 />
 
                 <Card style={{ marginBlockStart: 8 }}>
                     <Flex justify={"space-around"} align={"center"}>
-                        <Button size={"large"} disabled={this.state.books.length < 1}>
+                        <Button
+                            size={"large"}
+                            disabled={this.state.books.length < 1}
+                        >
                             收藏
                         </Button>
                         <Divider
@@ -1022,73 +1029,87 @@ class Core extends React.PureComponent {
                     </Flex>
                 </Card>
 
-                <ProCard style={{ marginBlockStart: 8 }}>
-                    <ProCard.Group
-                        title="辞书配置"
+                <RcResizeObserver
+                    key="resize-observer"
+                    onResize={(offset) => {
+                        this.setState((preState) => ({
+                            responsive: offset.width < 596
+                        }));
+                    }}
+                >
+                    <ProCard
+                        style={{ marginBlockStart: 8 }}
                         direction={this.state.responsive ? "column" : "row"}
                     >
-                        <ProCard>
-                            <Statistic title="本次背词计数" value={0} />
-                        </ProCard>
-                        <Divider
-                            type={
-                                this.state.responsive
-                                    ? "horizontal"
-                                    : "vertical"
-                            }
-                        />
-                        <ProCard>
-                            <Statistic
-                                title="准确率"
-                                value={100.0}
-                                precision={2}
-                                suffix="%"
-                            />
-                        </ProCard>
-                        <Divider
-                            type={
-                                this.state.responsive
-                                    ? "horizontal"
-                                    : "vertical"
-                            }
-                        />
-                        <ProCard
-                            title=<Text type="secondary">辞书选择</Text>
-                            style={{ maxWidth: 300 }}
-                            actions={
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        padding: 12,
-                                        flex: 1,
-                                        gap: 8,
-                                    }}
-                                >
-                                    <SettingOutlined key="setting" />
-                                    应用设置
-                                </div>
-                            }
+                        <ProCard.Group
+                            title="辞书配置"
+                            direction={this.state.responsive ? "column" : "row"}
                         >
-                            <TreeSelect
-                                showSearch
-                                style={{ width: "100%" }}
-                                value={this.state.chosenBooks}
-                                dropdownStyle={{
-                                    maxHeight: 400,
-                                    overflow: "auto",
-                                }}
-                                placeholder="Please select"
-                                allowClear
-                                multiple
-                                treeDefaultExpandAll
-                                // onChange={onChange}
-                                treeData={this.state.books.map((book) => book.name)}
+                            <ProCard>
+                                <Statistic title="本次背词计数" value={0} />
+                            </ProCard>
+                            <Divider
+                                type={
+                                    this.state.responsive
+                                        ? "horizontal"
+                                        : "vertical"
+                                }
                             />
-                        </ProCard>
-                    </ProCard.Group>
-                </ProCard>
+                            <ProCard>
+                                <Statistic
+                                    title="准确率"
+                                    value={100.0}
+                                    precision={2}
+                                    suffix="%"
+                                />
+                            </ProCard>
+                            <Divider
+                                type={
+                                    this.state.responsive
+                                        ? "horizontal"
+                                        : "vertical"
+                                }
+                            />
+                            <ProCard
+                                title=<Text type="secondary">辞书选择</Text>
+                                style={{ maxWidth: 300 }}
+                                actions={
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            padding: 12,
+                                            flex: 1,
+                                            gap: 8,
+                                        }}
+                                    >
+                                        <SettingOutlined key="setting" />
+                                        应用设置
+                                    </div>
+                                }
+                            >
+                                <TreeSelect
+                                    showSearch
+                                    style={{ width: "100%" }}
+                                    value={this.state.chosenBooks}
+                                    dropdownStyle={{
+                                        maxHeight: 400,
+                                        overflow: "auto",
+                                    }}
+                                    placeholder="Please select"
+                                    allowClear
+                                    multiple
+                                    treeDefaultExpandAll
+                                    // onChange={onChange}
+                                    treeData={this.state.books.map(
+                                        (book) => book.name
+                                    )}
+                                />
+                            </ProCard>
+                        </ProCard.Group>
+                    </ProCard>
+                </RcResizeObserver>
             </>
         );
     }

@@ -1,7 +1,28 @@
 .question-text {
-    font-size: 2.5rem;
+    font-size: 8vmin;
+    line-height: 6vmin;
 }
 
 .answer-text {
-    font-size: 1.5rem;
+    font-size: 5vmin;
+    line-height: 3vmin;
+}
+
+.answer-group {
+    width: 100%;
+    margin-block-start: 2;
+}
+
+.answer-card {
+    max-width: 100%;
+    margin: 0 1.5vmin 1vmin 0;
+    padding: 0vmin;
+}
+
+.answer-card div {
+    padding-block: 1.0vmin;
+}
+
+.answer-card div.ant-pro-checkcard-content div{
+    padding-block: .2vmin;
 }

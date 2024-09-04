@@ -26,10 +26,10 @@ function Router() {
   let content;
   switch (page) {
     case '/':
-      content = (
-        <QuestionAndAnswer qa={["问题", "答案"]} turnTo={turnTo} />
-      );
-      break;
+      // content = (
+      //   <QuestionAndAnswer qa={["问题", "答案"]} turnTo={turnTo} />
+      // );
+      // break;
     case '/welcome':
       content = (
         <Welcome turnTo={turnTo} />
