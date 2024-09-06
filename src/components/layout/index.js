@@ -16,29 +16,26 @@ const defaultMenus = {
             name: "welcome",
             icon: <SmileOutlined />,
             routes: [],
-            onclick: () => {
-                message.info("Welcome");
-            },
         },
         {
             path: "/core",
             name: "core",
             icon: <HeartOutlined />,
-            onclick: () => {
-                message.info("core");
-            },
         },
     ],
 };
 
-const loopMenuItem = (menus) =>
+const loopMenuItem = (menus, turnTo) =>
     menus?.map(({ icon, routes, ...item }) => ({
         ...item,
         icon: icon && IconMap[icon],
+        onclick: () => {
+            turnTo(item.path);
+        },
         children: routes && loopMenuItem(routes),
     }));
 
-export default ({ children }) => (
+export default ({ children, turnTo }) => (
     <ProLayout
         style={{
             minHeight: 500,
@@ -47,9 +44,11 @@ export default ({ children }) => (
         location={{
             pathname: "/",
         }}
-        // menu={{ request: async () => loopMenuItem(defaultMenus) }}
+        menuItemRender={(item, dom) => {
+            return <div onClick={()=>turnTo(item.path)}>{dom}</div>;
+        }}
+        onMenuHeaderClick={()=>turnTo("/welcome")}
         route={defaultMenus}
-        menu={defaultMenus}
         pageTitleRender={false}
     >
         <PageContainer content={children}></PageContainer>
