@@ -22,7 +22,6 @@ const BOOKS = {
             return false;
         }
         BOOKS.books = JSON.parse(s);
-        BOOKS.RefreshBookGridPannel();
     },
     SaveBooksIntoLocalStorage: () => {
         localStorage.setItem("books", JSON.stringify(BOOKS.books));
