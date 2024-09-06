@@ -1,11 +1,12 @@
 import React from "react";
 import { message } from "antd";
-import { HeartOutlined, SmileOutlined } from "@ant-design/icons";
+import { HeartOutlined, SmileOutlined, BookOutlined } from "@ant-design/icons";
 import { PageContainer, ProLayout } from "@ant-design/pro-components";
 
 const IconMap = {
     smile: <SmileOutlined />,
     heart: <HeartOutlined />,
+    book: <BookOutlined />,
 };
 
 const defaultMenus = {
@@ -22,18 +23,13 @@ const defaultMenus = {
             name: "core",
             icon: <HeartOutlined />,
         },
+        {
+            path: "/shelf",
+            name: "shelf",
+            icon: <BookOutlined />,
+        },
     ],
 };
-
-const loopMenuItem = (menus, turnTo) =>
-    menus?.map(({ icon, routes, ...item }) => ({
-        ...item,
-        icon: icon && IconMap[icon],
-        onclick: () => {
-            turnTo(item.path);
-        },
-        children: routes && loopMenuItem(routes),
-    }));
 
 export default ({ children, turnTo }) => (
     <ProLayout

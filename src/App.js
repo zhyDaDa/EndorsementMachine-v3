@@ -41,6 +41,11 @@ function Router() {
         <Core turnTo={turnTo} />
       );
       break;
+    case '/shelf':
+      content = (
+        <Shelf turnTo={turnTo} />
+      );
+      break;
     default:
       content = (
         <h1>404 Not Found</h1>

@@ -50,3 +50,57 @@ export const md2html = function (md) {
 
     return md;
 };
+
+export const GetBooksFromLocalStorage = () => {
+    let s = localStorage.getItem("books");
+    if (!s) {
+        console.log("存储中没有书");
+        return [];
+    }
+    return JSON.parse(s);
+};
+export const SaveBooksIntoLocalStorage = (books) => {
+    localStorage.setItem("books", JSON.stringify(books));
+};
+export class Book {
+    constructor(rawBook = {}) {
+        this.name = rawBook.name || "无名辞书";
+        this.mode = rawBook.mode || "填空类型";
+        this.lastEdit = Number(rawBook.lastEdit) || Date.now();
+        this.contentArray = this.getContentArray(rawBook.rawContent) || [
+            ["default", "默认"],
+        ];
+    }
+
+    toRawBook() {
+        return JSON.stringify({
+            name: this.name,
+            mode: this.mode,
+            lastEdit: this.lastEdit,
+            rawContent: this.getRawContent(),
+        });
+    }
+
+    getRawContent() {
+        return this.contentArray
+            .map((item) => `^^${item[0]}##${item[1]}`)
+            .join("");
+    }
+
+    getContentArray(rawContent) {
+        let CA = [];
+        CA = rawContent.split("^^");
+        CA.shift();
+        let finalContent = [];
+        finalContent = CA?.map((e) => {
+            let t = e.split("##");
+            return [t[0], t[t.length - 1]];
+        });
+        return finalContent;
+    }
+}
+export const deleteBook = (index) => {
+    let books = GetBooksFromLocalStorage();
+    books.splice(index, 1);
+    SaveBooksIntoLocalStorage(books);
+};
