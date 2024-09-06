@@ -1,11 +1,16 @@
 import React, { useState } from "react";
-import { Typography, Button, Card, Statistic, Flex, TreeSelect } from "antd";
+import { Typography, Button, Card, Statistic, Flex, Select, Space } from "antd";
 import { SettingOutlined, CloseOutlined } from "@ant-design/icons";
 import { deepCopy, md2html } from "../../utils/utils";
 import { SETTING } from "../../utils/colorSetting";
 import { ProCard } from "@ant-design/pro-components";
 import QuestionAndAnswer from "../../components/questionAndAnswer";
 import RcResizeObserver from "rc-resize-observer";
+import {
+    Book,
+    GetBooksFromLocalStorage,
+    SaveBooksIntoLocalStorage,
+} from "../../utils/utils";
 
 const { Divider } = ProCard;
 const { Title, Paragraph, Text, Link } = Typography;
@@ -30,22 +35,6 @@ const BOOKS = {
         return BOOKS.books.length;
     },
 };
-
-/**
- * 构造Book的方法, 得到一个Book对象
- * @param {string} rawBook 包含这本辞书所有信息的未加工的字符串
- */
-function Book(rawBook = "{}") {
-    let book_obj = JSON.parse(rawBook);
-    this.name = book_obj.name || "无名辞书";
-    this.mode = book_obj.mode || "填空类型";
-    this.lastEdit = Number(book_obj.time) || Date.now();
-    this.rawContent = book_obj.rawContent || "^^question##answer";
-    this.wordCount = Number(this.rawContent.length) || 0;
-    this.contentArray = GetModeByModeName(this.mode).DealContent(
-        this.rawContent
-    ) || [["question", "answer"]];
-}
 
 /**
  * 相当于全局对象, 表示当前的状态
@@ -914,8 +903,9 @@ class Core extends React.PureComponent {
         super(props);
         let { turnTo } = props;
         this.state = {
-            books: props.books || [],
-            chosenBooks: props.books || [],
+            books: [],
+            selectBooks: [],
+            chosenBooks: [],
             questionQueue: [["default", "默认"]],
             currentMode: "",
             currentQuestion: ["default", "默认"],
@@ -959,18 +949,12 @@ class Core extends React.PureComponent {
 
     // div: 初始化
     componentDidMount() {
-        // 抽取所有书籍
-        BOOKS.GetBooksFromLocalStorage();
-        // this.setState((preState) => ({
-        //     books: BOOKS.books.filter((book) => preState.books.includes(book)),
-        //     currentMode: "选择类型",
-        // }));
-        // // 得出问题库和答案库
-        // this.setState((preState) => ({
-        //     questionQueue: this.getNewQuestionQueue(),
-        // }));
-        // // 问题初始化, 取出第一个问题
-        // this.setQuestion();
+        let chosenBooks = JSON.parse(localStorage.getItem("chosenBooks"));
+        this.setState((preState) => ({
+            books: GetBooksFromLocalStorage(),
+            chosenBooks: chosenBooks,
+            selectBooks: chosenBooks,
+        }));
     }
 
     showAns() {
@@ -987,6 +971,20 @@ class Core extends React.PureComponent {
                 showAnsFlag: true,
             }));
         }
+    }
+
+    selectChange(value) {
+        this.setState((preState) => ({
+            selectBooks: value,
+        }));
+    }
+
+    setBooks() {
+        localStorage.setItem("chosenBooks", JSON.stringify(this.state.selectBooks));
+        this.setState((preState) => ({
+            chosenBooks: preState.selectBooks,
+            questionQueue: this.getNewQuestionQueue(),
+        }));
     }
 
     render() {
@@ -1033,7 +1031,7 @@ class Core extends React.PureComponent {
                     key="resize-observer"
                     onResize={(offset) => {
                         this.setState((preState) => ({
-                            responsive: offset.width < 596
+                            responsive: offset.width < 596,
                         }));
                     }}
                 >
@@ -1083,28 +1081,31 @@ class Core extends React.PureComponent {
                                             flex: 1,
                                             gap: 8,
                                         }}
+                                        onClick={this.setBooks}
                                     >
                                         <SettingOutlined key="setting" />
                                         应用设置
                                     </div>
                                 }
                             >
-                                <TreeSelect
-                                    showSearch
-                                    style={{ width: "100%" }}
-                                    value={this.state.chosenBooks}
-                                    dropdownStyle={{
-                                        maxHeight: 400,
-                                        overflow: "auto",
-                                    }}
-                                    placeholder="Please select"
-                                    allowClear
-                                    multiple
-                                    treeDefaultExpandAll
-                                    // onChange={onChange}
-                                    treeData={this.state.books.map(
-                                        (book) => book.name
+                                <Select
+                                    mode="multiple"
+                                    style={{ width: '100%' }}
+                                    placeholder="select books"
+                                    defaultValue={this.state.selectBooks}
+                                    onChange={this.selectChange}
+                                    options={this.state.books.map(
+                                        (book) => ({
+                                            label: book.name,
+                                            value: book.name,
+                                            desc: book.name,
+                                        })
                                     )}
+                                    optionRender={(option) => (
+                                        <Space>
+                                          {option.data.desc}
+                                        </Space>
+                                      )}
                                 />
                             </ProCard>
                         </ProCard.Group>
