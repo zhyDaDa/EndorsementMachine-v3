@@ -3,6 +3,7 @@ import Layout from './components/layout';
 import QuestionAndAnswer from './components/questionAndAnswer';
 import Welcome from './pages/welcome';
 import Core from './pages/core';
+import Shelf from './pages/shelf';
 import { message } from 'antd';
 
 export default function App() {
@@ -27,7 +28,7 @@ function Router() {
   switch (page) {
     case '/':
       content = (
-        <QuestionAndAnswer qa={["问题", "答案"]} turnTo={turnTo} />
+        <Shelf turnTo={turnTo} />
       );
       break;
     case '/welcome':
