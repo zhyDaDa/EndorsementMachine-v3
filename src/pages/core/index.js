@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Typography, Button, Card, Statistic, Flex, Select, Space } from "antd";
+import { Typography, Button, Card, Statistic, Flex, Select, Space, message } from "antd";
 import { SettingOutlined, CloseOutlined } from "@ant-design/icons";
 import { deepCopy, md2html } from "../../utils/utils";
 import { SETTING } from "../../utils/colorSetting";
@@ -11,6 +11,7 @@ import {
     GetBooksFromLocalStorage,
     SaveBooksIntoLocalStorage,
 } from "../../utils/utils";
+import { echo } from "../../utils/coolConsle";
 
 const { Divider } = ProCard;
 const { Title, Paragraph, Text, Link } = Typography;
@@ -916,8 +917,10 @@ class Core extends React.PureComponent {
 
     getNewQuestionQueue() {
         let allQuestion = [];
-        this.books?.map((book) => {
-            allQuestion = allQuestion.concat(book.contentArray);
+        this.state.books.map((book) => {
+            if(this.state.chosenBooks.includes(book.id)) {
+                allQuestion = allQuestion.concat(book.contentArray);
+            }
         });
         allQuestion.sort(() => Math.random() - 0.5); // 打乱数组
         return allQuestion;
@@ -940,9 +943,13 @@ class Core extends React.PureComponent {
                 questionQueue: allQuestion,
             }));
         } else {
-            this.setState((preState) => ({
-                questionQueue: preState.questionQueue.shift(),
-            }));
+            this.setState((preState) => {
+                let newQuestionQueue = preState.questionQueue;
+                newQuestionQueue.shift();
+                return {
+                    questionQueue: newQuestionQueue,
+                };
+            });
         }
         this.setQuestion();
     }
@@ -980,7 +987,10 @@ class Core extends React.PureComponent {
     }
 
     setBooks() {
-        localStorage.setItem("chosenBooks", JSON.stringify(this.state.selectBooks));
+        localStorage.setItem(
+            "chosenBooks",
+            JSON.stringify(this.state.selectBooks)
+        );
         this.setState((preState) => ({
             chosenBooks: preState.selectBooks,
             questionQueue: this.getNewQuestionQueue(),
@@ -1081,7 +1091,10 @@ class Core extends React.PureComponent {
                                             flex: 1,
                                             gap: 8,
                                         }}
-                                        onClick={this.setBooks}
+                                        onClick={() => {
+                                            this.setBooks();
+                                            message.success("设置成功!");
+                                        }}
                                     >
                                         <SettingOutlined key="setting" />
                                         应用设置
@@ -1090,22 +1103,20 @@ class Core extends React.PureComponent {
                             >
                                 <Select
                                     mode="multiple"
-                                    style={{ width: '100%' }}
+                                    style={{ width: "100%" }}
                                     placeholder="select books"
-                                    defaultValue={this.state.selectBooks}
-                                    onChange={this.selectChange}
-                                    options={this.state.books.map(
-                                        (book) => ({
-                                            label: book.name,
-                                            value: book.name,
-                                            desc: book.name,
-                                        })
-                                    )}
+                                    value={this.state.selectBooks}
+                                    onChange={(value) => {
+                                        this.selectChange(value);
+                                    }}
+                                    options={this.state.books.map((book) => ({
+                                        label: book.name,
+                                        value: book.id,
+                                        desc: book.name,
+                                    }))}
                                     optionRender={(option) => (
-                                        <Space>
-                                          {option.data.desc}
-                                        </Space>
-                                      )}
+                                        <Space>{option.data.desc}</Space>
+                                    )}
                                 />
                             </ProCard>
                         </ProCard.Group>

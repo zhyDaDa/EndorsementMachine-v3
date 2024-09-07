@@ -70,6 +70,7 @@ export class Book {
         this.contentArray = this.getContentArray(rawBook.rawContent) || [
             ["default", "默认"],
         ];
+        this.id = Date.now();
     }
 
     toRawBook() {
