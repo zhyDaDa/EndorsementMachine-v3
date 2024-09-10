@@ -1,11 +1,27 @@
 import React, { useState } from "react";
-import { Typography, Button, Card, Statistic, Flex, TreeSelect } from "antd";
+import {
+    Typography,
+    Button,
+    Card,
+    Statistic,
+    Flex,
+    Select,
+    Space,
+    message,
+    Switch,
+} from "antd";
 import { SettingOutlined, CloseOutlined } from "@ant-design/icons";
 import { deepCopy, md2html } from "../../utils/utils";
 import { SETTING } from "../../utils/colorSetting";
 import { ProCard } from "@ant-design/pro-components";
 import QuestionAndAnswer from "../../components/questionAndAnswer";
 import RcResizeObserver from "rc-resize-observer";
+import {
+    Book,
+    GetBooksFromLocalStorage,
+    SaveBooksIntoLocalStorage,
+} from "../../utils/utils";
+import { echo } from "../../utils/coolConsle";
 
 const { Divider } = ProCard;
 const { Title, Paragraph, Text, Link } = Typography;
@@ -30,22 +46,6 @@ const BOOKS = {
         return BOOKS.books.length;
     },
 };
-
-/**
- * 构造Book的方法, 得到一个Book对象
- * @param {string} rawBook 包含这本辞书所有信息的未加工的字符串
- */
-function Book(rawBook = "{}") {
-    let book_obj = JSON.parse(rawBook);
-    this.name = book_obj.name || "无名辞书";
-    this.mode = book_obj.mode || "填空类型";
-    this.lastEdit = Number(book_obj.time) || Date.now();
-    this.rawContent = book_obj.rawContent || "^^question##answer";
-    this.wordCount = Number(this.rawContent.length) || 0;
-    this.contentArray = GetModeByModeName(this.mode).DealContent(
-        this.rawContent
-    ) || [["question", "answer"]];
-}
 
 /**
  * 相当于全局对象, 表示当前的状态
@@ -914,20 +914,26 @@ class Core extends React.PureComponent {
         super(props);
         let { turnTo } = props;
         this.state = {
-            books: props.books || [],
-            chosenBooks: props.books || [],
+            books: [],
+            selectBooks: [],
+            chosenBooks: [],
             questionQueue: [["default", "默认"]],
-            currentMode: "",
+            currentMode: "填空模式",
             currentQuestion: ["default", "默认"],
             showAnsFlag: false,
             responsive: false,
+            correctCount: 0,
+            wrongCount: 0,
         };
     }
 
     getNewQuestionQueue() {
+        if(!this.state.chosenBooks) return [];
         let allQuestion = [];
-        this.books?.map((book) => {
-            allQuestion = allQuestion.concat(book.contentArray);
+        this.state.books.map((book) => {
+            if (this.state.chosenBooks.includes(book.id)) {
+                allQuestion = allQuestion.concat(book.contentArray);
+            }
         });
         allQuestion.sort(() => Math.random() - 0.5); // 打乱数组
         return allQuestion;
@@ -950,27 +956,25 @@ class Core extends React.PureComponent {
                 questionQueue: allQuestion,
             }));
         } else {
-            this.setState((preState) => ({
-                questionQueue: preState.questionQueue.shift(),
-            }));
+            this.setState((preState) => {
+                let newQuestionQueue = preState.questionQueue;
+                newQuestionQueue.shift();
+                return {
+                    questionQueue: newQuestionQueue,
+                };
+            });
         }
         this.setQuestion();
     }
 
     // div: 初始化
     componentDidMount() {
-        // 抽取所有书籍
-        BOOKS.GetBooksFromLocalStorage();
-        // this.setState((preState) => ({
-        //     books: BOOKS.books.filter((book) => preState.books.includes(book)),
-        //     currentMode: "选择类型",
-        // }));
-        // // 得出问题库和答案库
-        // this.setState((preState) => ({
-        //     questionQueue: this.getNewQuestionQueue(),
-        // }));
-        // // 问题初始化, 取出第一个问题
-        // this.setQuestion();
+        let chosenBooks = JSON.parse(localStorage.getItem("chosenBooks"));
+        this.setState((preState) => ({
+            books: GetBooksFromLocalStorage(),
+            chosenBooks: chosenBooks,
+            selectBooks: chosenBooks,
+        }));
     }
 
     showAns() {
@@ -989,6 +993,41 @@ class Core extends React.PureComponent {
         }
     }
 
+    onCorrect() {
+        this.setState((preState) => ({
+            correctCount: preState.correctCount + 1,
+        }));
+    }
+
+    onWrong() {
+        this.setState((preState) => ({
+            wrongCount: preState.wrongCount + 1,
+        }));
+    }
+
+    selectChange(value) {
+        this.setState((preState) => ({
+            selectBooks: value,
+        }));
+    }
+
+    setBooks() {
+        localStorage.setItem(
+            "chosenBooks",
+            JSON.stringify(this.state.selectBooks)
+        );
+        this.setState((preState) => ({
+            chosenBooks: preState.selectBooks,
+            questionQueue: this.getNewQuestionQueue(),
+        }));
+    }
+
+    useSelectMode(checked) {
+        this.setState((preState) => ({
+            currentMode: checked ? "选择模式" : "填空模式",
+        }));
+    }
+
     render() {
         return (
             <>
@@ -999,41 +1038,45 @@ class Core extends React.PureComponent {
                     }}
                     showAnsFlag={this.state.showAnsFlag}
                     mode={this.state.currentMode}
-                    onCorrect={() => {}}
-                    onWrong={() => {}}
+                    onCorrect={() => {
+                        this.onCorrect();
+                    }}
+                    onWrong={() => {
+                        this.onWrong();
+                    }}
                 />
 
-                <Card style={{ marginBlockStart: 8 }}>
-                    <Flex justify={"space-around"} align={"center"}>
-                        <Button
-                            size={"large"}
-                            disabled={this.state.books.length < 1}
-                        >
-                            收藏
-                        </Button>
-                        <Divider
-                            type={
-                                this.state.responsive
-                                    ? "horizontal"
-                                    : "vertical"
-                            }
-                        />
-                        <Button
-                            onClick={() => {
-                                this.nextButtonClick();
-                            }}
-                            disabled={this.state.books.length < 1}
-                        >
-                            {this.state.showAnsFlag ? "下一题" : "忘了"}
-                        </Button>
-                    </Flex>
-                </Card>
+                <Flex justify={"space-around"} align={"center"}>
+                    <Button
+                        size={"large"}
+                        shape={"round"}
+                        disabled={this.state.books.length < 1}
+                        block
+                    >
+                        收藏
+                    </Button>
+                    <Divider
+                        type={this.state.responsive ? "horizontal" : "vertical"}
+                    />
+                    <Button
+                        onClick={() => {
+                            this.nextButtonClick();
+                        }}
+                        size={"large"}
+                        shape={"round"}
+                        disabled={this.state.books.length < 1}
+                        block
+                        type="primary"
+                    >
+                        {this.state.showAnsFlag ? "下一题" : "忘了"}
+                    </Button>
+                </Flex>
 
                 <RcResizeObserver
                     key="resize-observer"
                     onResize={(offset) => {
                         this.setState((preState) => ({
-                            responsive: offset.width < 596
+                            responsive: offset.width < 596,
                         }));
                     }}
                 >
@@ -1046,7 +1089,13 @@ class Core extends React.PureComponent {
                             direction={this.state.responsive ? "column" : "row"}
                         >
                             <ProCard>
-                                <Statistic title="本次背词计数" value={0} />
+                                <Statistic
+                                    title="本次背词计数"
+                                    value={
+                                        this.state.correctCount +
+                                        this.state.wrongCount
+                                    }
+                                />
                             </ProCard>
                             <Divider
                                 type={
@@ -1058,7 +1107,14 @@ class Core extends React.PureComponent {
                             <ProCard>
                                 <Statistic
                                     title="准确率"
-                                    value={100.0}
+                                    value={
+                                        this.state.correctCount
+                                            ? 100.0 /
+                                              (1 +
+                                                  this.state.wrongCount /
+                                                      this.state.correctCount)
+                                            : 0.0
+                                    }
                                     precision={2}
                                     suffix="%"
                                 />
@@ -1083,28 +1139,50 @@ class Core extends React.PureComponent {
                                             flex: 1,
                                             gap: 8,
                                         }}
+                                        onClick={() => {
+                                            this.setBooks();
+                                            message.success("设置成功!");
+                                        }}
                                     >
                                         <SettingOutlined key="setting" />
                                         应用设置
                                     </div>
                                 }
                             >
-                                <TreeSelect
-                                    showSearch
+                                <Select
+                                    mode="multiple"
                                     style={{ width: "100%" }}
-                                    value={this.state.chosenBooks}
-                                    dropdownStyle={{
-                                        maxHeight: 400,
-                                        overflow: "auto",
+                                    placeholder="select books"
+                                    value={this.state.selectBooks}
+                                    onChange={(value) => {
+                                        this.selectChange(value);
                                     }}
-                                    placeholder="Please select"
-                                    allowClear
-                                    multiple
-                                    treeDefaultExpandAll
-                                    // onChange={onChange}
-                                    treeData={this.state.books.map(
-                                        (book) => book.name
+                                    options={this.state.books.map((book) => ({
+                                        label: book.name,
+                                        value: book.id,
+                                        desc: book.name,
+                                    }))}
+                                    optionRender={(option) => (
+                                        <Space>{option.data.desc}</Space>
                                     )}
+                                />
+                            </ProCard>
+                            <Divider
+                                type={
+                                    this.state.responsive
+                                        ? "horizontal"
+                                        : "vertical"
+                                }
+                            />
+                            <ProCard
+                                title=<Text type="secondary">启用大模型</Text>
+                                style={{ maxWidth: 300 }}
+                            >
+                                <Switch
+                                    checkedChildren="开启"
+                                    unCheckedChildren="关闭"
+                                    size="large"
+                                    onChange={(checked) => {this.useSelectMode(checked)}}
                                 />
                             </ProCard>
                         </ProCard.Group>
