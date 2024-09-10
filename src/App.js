@@ -28,7 +28,7 @@ function Router() {
   switch (page) {
     case '/':
       content = (
-        <Shelf turnTo={turnTo} />
+        <Core turnTo={turnTo} />
       );
       break;
     case '/welcome':
@@ -41,6 +41,11 @@ function Router() {
         <Core turnTo={turnTo} />
       );
       break;
+    case '/shelf':
+      content = (
+        <Shelf turnTo={turnTo} />
+      );
+      break;
     default:
       content = (
         <h1>404 Not Found</h1>
@@ -48,7 +53,7 @@ function Router() {
   }
 
   return (
-    <Layout isPending={isPending}>
+    <Layout isPending={isPending} turnTo={turnTo}>
       {content}
     </Layout>
   );

@@ -1,11 +1,12 @@
 import React from "react";
 import { message } from "antd";
-import { HeartOutlined, SmileOutlined } from "@ant-design/icons";
+import { HeartOutlined, SmileOutlined, BookOutlined } from "@ant-design/icons";
 import { PageContainer, ProLayout } from "@ant-design/pro-components";
 
 const IconMap = {
     smile: <SmileOutlined />,
     heart: <HeartOutlined />,
+    book: <BookOutlined />,
 };
 
 const defaultMenus = {
@@ -16,29 +17,21 @@ const defaultMenus = {
             name: "welcome",
             icon: <SmileOutlined />,
             routes: [],
-            onclick: () => {
-                message.info("Welcome");
-            },
         },
         {
             path: "/core",
             name: "core",
             icon: <HeartOutlined />,
-            onclick: () => {
-                message.info("core");
-            },
+        },
+        {
+            path: "/shelf",
+            name: "shelf",
+            icon: <BookOutlined />,
         },
     ],
 };
 
-const loopMenuItem = (menus) =>
-    menus?.map(({ icon, routes, ...item }) => ({
-        ...item,
-        icon: icon && IconMap[icon],
-        children: routes && loopMenuItem(routes),
-    }));
-
-export default ({ children }) => (
+export default ({ children, turnTo }) => (
     <ProLayout
         style={{
             minHeight: 500,
@@ -47,9 +40,11 @@ export default ({ children }) => (
         location={{
             pathname: "/",
         }}
-        // menu={{ request: async () => loopMenuItem(defaultMenus) }}
+        menuItemRender={(item, dom) => {
+            return <div onClick={()=>turnTo(item.path)}>{dom}</div>;
+        }}
+        onMenuHeaderClick={()=>turnTo("/welcome")}
         route={defaultMenus}
-        menu={defaultMenus}
         pageTitleRender={false}
     >
         <PageContainer content={children}></PageContainer>
