@@ -4,6 +4,7 @@ import QuestionAndAnswer from './components/questionAndAnswer';
 import Welcome from './pages/welcome';
 import Core from './pages/core';
 import Shelf from './pages/shelf';
+import EditTable from './components/editTable';
 import { message } from 'antd';
 
 export default function App() {
@@ -28,7 +29,7 @@ function Router() {
   switch (page) {
     case '/':
       content = (
-        <Core turnTo={turnTo} />
+        <EditTable turnTo={turnTo} />
       );
       break;
     case '/welcome':
