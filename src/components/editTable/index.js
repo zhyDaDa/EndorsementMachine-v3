@@ -7,7 +7,7 @@ import {
     ProFormSegmented,
     ProFormSwitch,
 } from "@ant-design/pro-components";
-import { Button, message, Space, Typography, Select } from "antd";
+import { Button, message, Space, Typography, Select, FloatButton } from "antd";
 import React, { useRef, useState, useEffect } from "react";
 import {
     Book,
@@ -177,12 +177,6 @@ export default function EditTable({ turnTo }) {
                         />
                     }
                 </Text>
-                <Text type="secondary">
-                    {(() => {
-                        let b = books.find((e) => e.id == currentBook);
-                        return b ? b.name : "无";
-                    })()}
-                </Text>
             </Space>
             <EditableProTable
                 rowKey="id"
@@ -219,6 +213,7 @@ export default function EditTable({ turnTo }) {
                 }}
                 style={{ display: currentBook ? "block" : "none" }}
             />
+            <FloatButton.BackTop type="primary" />
         </ProForm>
     );
 }
