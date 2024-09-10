@@ -19,33 +19,16 @@ import { echo } from "../../utils/coolConsle";
 
 const { Title, Paragraph, Text, Link } = Typography;
 
-const defaultData = [
-    {
-        id: "624748504",
-        title: "活动名称一",
-        decs: "这个活动真好玩",
-        state: "open",
-        created_at: 1590486176000,
-        update_at: 1590486176000,
-    },
-    {
-        id: "624691229",
-        title: "活动名称二",
-        decs: "这个活动真好玩",
-        state: "closed",
-        created_at: 1590481162000,
-        update_at: 1590481162000,
-    },
-];
+const defaultData = [];
 
 let i = 0;
 
-export default function EditTable({ turnTo }) {
+export default function EditTable({ turnTo, initialBookId }) {
     const [editableKeys, setEditableRowKeys] = useState(() => []);
     const position = "top";
     const [controlled, setControlled] = useState(false);
     const [books, setBooks] = useState([]);
-    const [currentBook, setCurrentBook] = useState(null);
+    const [currentBook, setCurrentBook] = useState(initialBookId);
     const formRef = useRef();
     const editorFormRef = useRef();
     const columns = [
@@ -123,6 +106,10 @@ export default function EditTable({ turnTo }) {
         }
     }, [currentBook]);
 
+    useEffect(() => {
+        setCurrentBook(initialBookId);
+    }, [initialBookId]);
+
     const saveChange = () => {
         const rows = editorFormRef.current?.getRowsData?.();
         let i = books.findIndex((e) => e.id == currentBook);
@@ -168,6 +155,7 @@ export default function EditTable({ turnTo }) {
                             onChange={(v) => {
                                 setCurrentBook(v);
                             }}
+                            value={currentBook}
                             options={books.map((book) => {
                                 return {
                                     label: book.name,

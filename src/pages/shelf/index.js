@@ -10,15 +10,26 @@ import {
     Flex,
     message,
     FloatButton,
+    Drawer,
 } from "antd";
-import { CloudDownloadOutlined, PlusCircleOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+    CloudDownloadOutlined,
+    PlusCircleOutlined,
+    DeleteOutlined,
+} from "@ant-design/icons";
 import { deepCopy, md2html } from "../../utils/utils";
 import { SETTING } from "../../utils/colorSetting";
 import { ProCard, CheckCard } from "@ant-design/pro-components";
 import BookCard from "../../components/bookCard";
 import "./index.css";
 import { echo } from "../../utils/coolConsle";
-import { GetBooksFromLocalStorage, SaveBooksIntoLocalStorage, Book, deleteBook } from "../../utils/utils";
+import {
+    GetBooksFromLocalStorage,
+    SaveBooksIntoLocalStorage,
+    Book,
+    deleteBook,
+} from "../../utils/utils";
+import EditTable from "../../components/editTable";
 
 const { Divider } = ProCard;
 const { Title, Paragraph, Text, Link } = Typography;
@@ -32,15 +43,24 @@ class Shelf extends React.PureComponent {
     constructor(props) {
         super(props);
         let { turnTo } = props;
+        this.state = {
+            books: [],
+            openFlag: false,
+        };
     }
 
-    state = {
-        books: [],
+    closeDrawer = () => {
+        this.setState((pre) => ({ openFlag: false }));
+    };
+
+    showDrawer = () => {
+        this.setState((pre) => ({ openFlag: true }));
     };
 
     componentDidMount() {
         let books = GetBooksFromLocalStorage();
         this.setState((pre) => ({ books: books }));
+        this.setState((pre) => ({ openFlag: false }));
     }
 
     render() {
@@ -61,17 +81,20 @@ class Shelf extends React.PureComponent {
                                     turnTo={this.props.turnTo}
                                     style={gridStyle}
                                     book={book}
-                                    deleteBook={() => {deleteBook(index);this.componentDidMount();}}
+                                    onEdit={() => {this.setState((pre) => ({ openFlag: true, curEditBookId: book.id }));}}
+                                    deleteBook={() => {
+                                        deleteBook(index);
+                                        this.componentDidMount();
+                                    }}
                                     index={index}
                                     key={index}
-                                    
                                 />
                             );
                         })
                     ) : (
                         <Text type="secondary">没有辞书</Text>
                     )}
-                </Space>{" "}
+                </Space>
                 <FloatButton.Group
                     trigger="click"
                     type="primary"
@@ -133,6 +156,9 @@ class Shelf extends React.PureComponent {
                         }}
                     />
                 </FloatButton.Group>
+                <Drawer onClose={this.closeDrawer} open={this.state.openFlag} placement="bottom" height={"86vh"}>
+                    <EditTable initialBookId={this.state.curEditBookId} />
+                </Drawer>
             </>
         );
     }
@@ -168,7 +194,7 @@ const loadFromCloud = async () => {
                 return response.text();
             })
             .then((text) => {
-                let name = link.title.split(".")
+                let name = link.title.split(".");
                 name.pop();
                 name = name.join(".");
                 let book = new Book({
