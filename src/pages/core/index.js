@@ -1,5 +1,15 @@
 import React, { useState } from "react";
-import { Typography, Button, Card, Statistic, Flex, Select, Space, message } from "antd";
+import {
+    Typography,
+    Button,
+    Card,
+    Statistic,
+    Flex,
+    Select,
+    Space,
+    message,
+    Switch,
+} from "antd";
 import { SettingOutlined, CloseOutlined } from "@ant-design/icons";
 import { deepCopy, md2html } from "../../utils/utils";
 import { SETTING } from "../../utils/colorSetting";
@@ -908,17 +918,20 @@ class Core extends React.PureComponent {
             selectBooks: [],
             chosenBooks: [],
             questionQueue: [["default", "默认"]],
-            currentMode: "",
+            currentMode: "填空模式",
             currentQuestion: ["default", "默认"],
             showAnsFlag: false,
             responsive: false,
+            correctCount: 0,
+            wrongCount: 0,
         };
     }
 
     getNewQuestionQueue() {
+        if(!this.state.chosenBooks) return [];
         let allQuestion = [];
         this.state.books.map((book) => {
-            if(this.state.chosenBooks.includes(book.id)) {
+            if (this.state.chosenBooks.includes(book.id)) {
                 allQuestion = allQuestion.concat(book.contentArray);
             }
         });
@@ -980,6 +993,18 @@ class Core extends React.PureComponent {
         }
     }
 
+    onCorrect() {
+        this.setState((preState) => ({
+            correctCount: preState.correctCount + 1,
+        }));
+    }
+
+    onWrong() {
+        this.setState((preState) => ({
+            wrongCount: preState.wrongCount + 1,
+        }));
+    }
+
     selectChange(value) {
         this.setState((preState) => ({
             selectBooks: value,
@@ -997,6 +1022,12 @@ class Core extends React.PureComponent {
         }));
     }
 
+    useSelectMode(checked) {
+        this.setState((preState) => ({
+            currentMode: checked ? "选择模式" : "填空模式",
+        }));
+    }
+
     render() {
         return (
             <>
@@ -1007,35 +1038,39 @@ class Core extends React.PureComponent {
                     }}
                     showAnsFlag={this.state.showAnsFlag}
                     mode={this.state.currentMode}
-                    onCorrect={() => {}}
-                    onWrong={() => {}}
+                    onCorrect={() => {
+                        this.onCorrect();
+                    }}
+                    onWrong={() => {
+                        this.onWrong();
+                    }}
                 />
 
-                <Card style={{ marginBlockStart: 8 }}>
-                    <Flex justify={"space-around"} align={"center"}>
-                        <Button
-                            size={"large"}
-                            disabled={this.state.books.length < 1}
-                        >
-                            收藏
-                        </Button>
-                        <Divider
-                            type={
-                                this.state.responsive
-                                    ? "horizontal"
-                                    : "vertical"
-                            }
-                        />
-                        <Button
-                            onClick={() => {
-                                this.nextButtonClick();
-                            }}
-                            disabled={this.state.books.length < 1}
-                        >
-                            {this.state.showAnsFlag ? "下一题" : "忘了"}
-                        </Button>
-                    </Flex>
-                </Card>
+                <Flex justify={"space-around"} align={"center"}>
+                    <Button
+                        size={"large"}
+                        shape={"round"}
+                        disabled={this.state.books.length < 1}
+                        block
+                    >
+                        收藏
+                    </Button>
+                    <Divider
+                        type={this.state.responsive ? "horizontal" : "vertical"}
+                    />
+                    <Button
+                        onClick={() => {
+                            this.nextButtonClick();
+                        }}
+                        size={"large"}
+                        shape={"round"}
+                        disabled={this.state.books.length < 1}
+                        block
+                        type="primary"
+                    >
+                        {this.state.showAnsFlag ? "下一题" : "忘了"}
+                    </Button>
+                </Flex>
 
                 <RcResizeObserver
                     key="resize-observer"
@@ -1054,7 +1089,13 @@ class Core extends React.PureComponent {
                             direction={this.state.responsive ? "column" : "row"}
                         >
                             <ProCard>
-                                <Statistic title="本次背词计数" value={0} />
+                                <Statistic
+                                    title="本次背词计数"
+                                    value={
+                                        this.state.correctCount +
+                                        this.state.wrongCount
+                                    }
+                                />
                             </ProCard>
                             <Divider
                                 type={
@@ -1066,7 +1107,14 @@ class Core extends React.PureComponent {
                             <ProCard>
                                 <Statistic
                                     title="准确率"
-                                    value={100.0}
+                                    value={
+                                        this.state.correctCount
+                                            ? 100.0 /
+                                              (1 +
+                                                  this.state.wrongCount /
+                                                      this.state.correctCount)
+                                            : 0.0
+                                    }
                                     precision={2}
                                     suffix="%"
                                 />
@@ -1117,6 +1165,24 @@ class Core extends React.PureComponent {
                                     optionRender={(option) => (
                                         <Space>{option.data.desc}</Space>
                                     )}
+                                />
+                            </ProCard>
+                            <Divider
+                                type={
+                                    this.state.responsive
+                                        ? "horizontal"
+                                        : "vertical"
+                                }
+                            />
+                            <ProCard
+                                title=<Text type="secondary">启用大模型</Text>
+                                style={{ maxWidth: 300 }}
+                            >
+                                <Switch
+                                    checkedChildren="开启"
+                                    unCheckedChildren="关闭"
+                                    size="large"
+                                    onChange={(checked) => {this.useSelectMode(checked)}}
                                 />
                             </ProCard>
                         </ProCard.Group>
