@@ -11,7 +11,7 @@ import {
     message,
     FloatButton,
 } from "antd";
-import { CloudDownloadOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import { CloudDownloadOutlined, PlusCircleOutlined, DeleteOutlined } from "@ant-design/icons";
 import { deepCopy, md2html } from "../../utils/utils";
 import { SETTING } from "../../utils/colorSetting";
 import { ProCard, CheckCard } from "@ant-design/pro-components";
@@ -111,6 +111,24 @@ class Shelf extends React.PureComponent {
                         shape="square"
                         onClick={async () => {
                             await loadFromCloud();
+                            this.componentDidMount();
+                        }}
+                    />
+                    <FloatButton
+                        icon={<DeleteOutlined />}
+                        description={
+                            <Text
+                                style={{
+                                    fontSize: "1.2vmin",
+                                    textWrap: "nowrap",
+                                }}
+                            >
+                                Delete All
+                            </Text>
+                        }
+                        shape="square"
+                        onClick={async () => {
+                            SaveBooksIntoLocalStorage([]);
                             this.componentDidMount();
                         }}
                     />

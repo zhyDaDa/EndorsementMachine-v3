@@ -7,8 +7,17 @@ import {
     ProFormSegmented,
     ProFormSwitch,
 } from "@ant-design/pro-components";
-import { Button } from "antd";
-import React, { useRef, useState } from "react";
+import { Button, message, Space, Typography, Select } from "antd";
+import React, { useRef, useState, useEffect } from "react";
+import {
+    Book,
+    GetBooksFromLocalStorage,
+    SaveBooksIntoLocalStorage,
+    deepCopy,
+} from "../../utils/utils";
+import { echo } from "../../utils/coolConsle";
+
+const { Title, Paragraph, Text, Link } = Typography;
 
 const defaultData = [
     {
@@ -31,10 +40,12 @@ const defaultData = [
 
 let i = 0;
 
-export default function EditTable ({initialData, bookName, turnTo}) {
+export default function EditTable({ turnTo }) {
     const [editableKeys, setEditableRowKeys] = useState(() => []);
-    const [position, setPosition] = useState("bottom");
+    const position = "top";
     const [controlled, setControlled] = useState(false);
+    const [books, setBooks] = useState([]);
+    const [currentBook, setCurrentBook] = useState(null);
     const formRef = useRef();
     const editorFormRef = useRef();
     const columns = [
@@ -82,6 +93,7 @@ export default function EditTable ({initialData, bookName, turnTo}) {
                                 (item) => item.id !== record.id
                             ),
                         });
+                        saveChange();
                     }}
                 >
                     删除
@@ -90,6 +102,44 @@ export default function EditTable ({initialData, bookName, turnTo}) {
         },
     ];
 
+    useEffect(() => {
+        (async () => {
+            setBooks(GetBooksFromLocalStorage());
+        })();
+    }, []);
+
+    useEffect(() => {
+        let b = books.find((e) => e.id == currentBook);
+        if (b) {
+            formRef.current?.setFieldsValue({
+                table: b.contentArray.map((e) => {
+                    return {
+                        id: (Math.random() * 1000000).toFixed(0),
+                        question: e[0],
+                        answer: e[1],
+                    };
+                }),
+            });
+        }
+    }, [currentBook]);
+
+    const saveChange = () => {
+        const rows = editorFormRef.current?.getRowsData?.();
+        let i = books.findIndex((e) => e.id == currentBook);
+        let b = new Book(books[i]);
+        b.contentArray = rows.map((row) => [row.question, row.answer]);
+        let _books = [
+            ...books.slice(0, i),
+            b,
+            ...books.slice(i + 1, books.length),
+        ];
+        echo.log(echo.asSuccess("i"), i);
+        echo.log(echo.asSuccess("b"), b);
+        echo.log(echo.asSuccess("_books"), _books);
+        SaveBooksIntoLocalStorage(_books);
+        setBooks(GetBooksFromLocalStorage());
+    };
+
     return (
         <ProForm
             formRef={formRef}
@@ -97,14 +147,49 @@ export default function EditTable ({initialData, bookName, turnTo}) {
                 table: defaultData,
             }}
             validateTrigger="onBlur"
+            // onBlur={()=>{saveChange()}}
+            // onValuesChange={() => {
+            //     saveChange();
+            // }}
+            // onFinish={() => {saveChange()}}
+            submitter={false}
         >
+            <Space>
+                <Text strong>
+                    编辑辞书&nbsp;
+                    {
+                        <Select
+                            showSearch
+                            style={{
+                                width: "36vw",
+                            }}
+                            placeholder="Select a book"
+                            optionFilterProp="label"
+                            onChange={(v) => {
+                                setCurrentBook(v);
+                            }}
+                            options={books.map((book) => {
+                                return {
+                                    label: book.name,
+                                    value: book.id,
+                                };
+                            })}
+                        />
+                    }
+                </Text>
+                <Text type="secondary">
+                    {(() => {
+                        let b = books.find((e) => e.id == currentBook);
+                        return b ? b.name : "无";
+                    })()}
+                </Text>
+            </Space>
             <EditableProTable
                 rowKey="id"
                 scroll={{
                     x: "120%",
                 }}
                 editableFormRef={editorFormRef}
-                headerTitle={`编辑辞书：${bookName}`}
                 name="table"
                 recordCreatorProps={
                     position !== "hidden"
@@ -116,22 +201,14 @@ export default function EditTable ({initialData, bookName, turnTo}) {
                           }
                         : false
                 }
-                toolBarRender={() => [
-                    <Button
-                        key="rows"
-                        onClick={() => {
-                            const rows = editorFormRef.current?.getRowsData?.();
-                            console.log(rows);
-                        }}
-                    >
-                        获取 table 的数据
-                    </Button>,
-                ]}
+                toolBarRender={false}
                 columns={columns}
                 editable={{
                     type: "multiple",
                     editableKeys,
                     onChange: setEditableRowKeys,
+                    onSave: saveChange,
+                    onDelete: saveChange,
                     actionRender: (row, config, defaultDom) => {
                         return [
                             defaultDom.save,
@@ -140,33 +217,8 @@ export default function EditTable ({initialData, bookName, turnTo}) {
                         ];
                     },
                 }}
+                style={{ display: currentBook ? "block" : "none" }}
             />
-            <ProForm.Item>
-                <ProCard
-                    title="表格数据"
-                    headerBordered
-                    collapsible
-                    defaultCollapsed
-                >
-                    <ProFormDependency name={["table"]}>
-                        {({ table }) => {
-                            return (
-                                <ProFormField
-                                    ignoreFormItem
-                                    fieldProps={{
-                                        style: {
-                                            width: "100%",
-                                        },
-                                    }}
-                                    mode="read"
-                                    valueType="jsonCode"
-                                    text={JSON.stringify(table)}
-                                />
-                            );
-                        }}
-                    </ProFormDependency>
-                </ProCard>
-            </ProForm.Item>
         </ProForm>
     );
-};
+}

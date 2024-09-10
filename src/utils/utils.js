@@ -57,7 +57,8 @@ export const GetBooksFromLocalStorage = () => {
         console.log("存储中没有书");
         return [];
     }
-    return JSON.parse(s);
+    let books = JSON.parse(s);
+    return books.map((e) => new Book(e));
 };
 export const SaveBooksIntoLocalStorage = (books) => {
     localStorage.setItem("books", JSON.stringify(books));
@@ -67,10 +68,10 @@ export class Book {
         this.name = rawBook.name || "无名辞书";
         this.mode = rawBook.mode || "填空类型";
         this.lastEdit = Number(rawBook.lastEdit) || Date.now();
-        this.contentArray = this.getContentArray(rawBook.rawContent) || [
+        this.contentArray = rawBook.contentArray || this.getContentArray(rawBook.rawContent) || [
             ["default", "默认"],
         ];
-        this.id = Date.now();
+        this.id = rawBook.id || Date.now();
     }
 
     toRawBook() {
@@ -89,15 +90,20 @@ export class Book {
     }
 
     getContentArray(rawContent) {
-        let CA = [];
-        CA = rawContent.split("^^");
-        CA.shift();
-        let finalContent = [];
-        finalContent = CA?.map((e) => {
-            let t = e.split("##");
-            return [t[0], t[t.length - 1]];
-        });
-        return finalContent;
+        try {
+            let CA = [];
+            CA = rawContent.split("^^");
+            CA.shift();
+            let finalContent = [];
+            finalContent = CA?.map((e) => {
+                let t = e.split("##");
+                return [t[0], t[t.length - 1]];
+            });
+            return finalContent;
+        } catch (e) {
+            console.log("getContentArray解析失败", e);
+            return [];
+        }
     }
 }
 export const deleteBook = (index) => {
