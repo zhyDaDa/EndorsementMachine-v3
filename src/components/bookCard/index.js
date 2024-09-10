@@ -22,9 +22,9 @@ import { ProCard, CheckCard } from "@ant-design/pro-components";
 const { Divider } = ProCard;
 const { Title, Paragraph, Text, Link } = Typography;
 
-export default function BookCard({ style, turnTo, book, deleteBook }) {
+export default function BookCard({ style, turnTo, book, deleteBook, onEdit }) {
     const actions = [
-        <EditOutlined key="edit" />,
+        <EditOutlined key="edit" onClick={onEdit}/>,
         <Popconfirm
             title="删除辞书"
             description="删除后不可恢复，确定删除吗？"
