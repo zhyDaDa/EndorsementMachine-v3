@@ -40,9 +40,9 @@ jobs:
                   echo ${{ secrets.PAT_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             # 停止现在的所有容器并删除
-            - name: Remove Old Container
-              run: |
-                  docker rmi ghcr.io/zhydada/em-v3-git:${{ github.ref_name }}
+            # - name: Remove Old Container
+            #   run: |
+            #       docker rmi ghcr.io/zhydada/em-v3-git:${{ github.ref_name }}
 
             # 从ghcr.io拉取镜像
             - name: Pull Image
