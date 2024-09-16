@@ -2,7 +2,7 @@ name: Auto update docker # workflow名称，可以随意改
 run-name: auto update docker ✨ # workflow运行时的名称，可以随意改
 on: # workflow的事件钩子，告知程序什么时候出发自动部署
     push:
-        branches: [master] # 在master分支有push操作的时候自动部署
+        branches: [release] # 在master分支有push操作的时候自动部署
 jobs:
     # 第一个工作-build
     build-and-push: # 打包并上传docker镜像
