@@ -1,5 +1,5 @@
 name: Publish Docker image
-
+run-name: ${{ github.actor }} is pushing docker image 🚀
 on:
     push:
         branches:
