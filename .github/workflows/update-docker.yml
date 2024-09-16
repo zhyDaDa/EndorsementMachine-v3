@@ -1,0 +1,54 @@
+name: BlogVue3 Docker Image CI/CD # workflow名称，可以随意改
+on: # workflow的事件钩子，告知程序什么时候出发自动部署
+    push:
+        branches: [master] # 在master分支有push操作的时候自动部署
+jobs:
+    # 第一个工作-build
+    build-and-push: # 打包并上传docker镜像
+        name: Build and Push Docker Image
+        runs-on: ubuntu-latest # 依赖的环境,注意：actions提供的linux环境只有ubuntu
+        steps:
+            # 使用actions/checkout@v2获取项目中的代码（name是阶段名，可以随便填，每一个name必须对应一个run/uses）
+            - name: Checkout
+              uses: actions/checkout@v2
+            # 创建docker镜像
+            - name: Build Image
+              # ${{ secrets.DOCKER_REPOSITORY }}是读取之前在Secret创建的名为DOCKER_REPOSITORY的值
+              # 从项目根目录的dockerfile文件创建docker镜像
+              run: docker build -t ${{ secrets.DOCKER_REPOSITORY }}:${{ github.ref_name }} ./
+            - name: Log in to GitHub Container Registry
+              uses: docker/login-action@v1
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.PAT_TOKEN }}
+            # 将镜像提交到镜像仓库
+            - name: Push Image
+              run: docker push ${{ secrets.DOCKER_REPOSITORY }}:${{ github.ref_name }}
+    # 第二个工作-pull-docker
+    pull-docker:
+        needs: [build-and-push]
+        name: Pull Docker
+        runs-on: ubuntu-latest
+        steps:
+            #  先登录到ghcr.io
+            - name: Log in
+              uses: docker/login-action@v1
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.PAT_TOKEN }}
+
+            # 从ghcr.io拉取镜像
+            - name: Pull Image
+              run: docker pull ${{ secrets.DOCKER_REPOSITORY }}:${{ github.ref_name }}
+
+            # 停止现在的所有容器并删除
+            - name: Remove Old Container
+              run: |
+                    docker stop $(docker ps -a -q)
+                    docker rm $(docker ps -a -q)
+            
+            # 运行镜像
+            - name: Run Image
+              run: docker run -d -p 80:80 ${{ secrets.DOCKER_REPOSITORY }}:${{ github.ref_name }}

@@ -12,6 +12,7 @@ RUN export NVM_DIR="$HOME/.nvm" && \
     nvm use v${NODE_VERSION}
 
 WORKDIR /em-3_app
+EXPOSE 80
 
 COPY ./src /em-3_app/src
 COPY ./public /em-3_app/public
