@@ -13,14 +13,12 @@ RUN export NVM_DIR="$HOME/.nvm" && \
 
 WORKDIR /em-3_app
 
-COPY ./.git /em-3_app/.git
 COPY ./src /em-3_app/src
 COPY ./public /em-3_app/public
 COPY ./package.json /em-3_app/package.json
 COPY ./package-lock.json /em-3_app/package-lock.json
 COPY ./craco.config.js /em-3_app/craco.config.js
 
-RUN git pull origin dev
 RUN npm install
 RUN npm run build
 RUN npm install -g serve
