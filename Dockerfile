@@ -17,7 +17,6 @@ EXPOSE 80
 COPY ./src /em-3_app/src
 COPY ./public /em-3_app/public
 COPY ./package.json /em-3_app/package.json
-COPY ./package-lock.json /em-3_app/package-lock.json
 COPY ./craco.config.js /em-3_app/craco.config.js
 
 RUN npm install
