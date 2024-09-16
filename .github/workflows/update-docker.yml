@@ -19,10 +19,15 @@ jobs:
               run: docker build -t ghcr.io/zhydada/em-v3-git:${{ github.ref_name }} ./
             - name: Log in
               run: |
-                    echo ${{ secrets.PAT_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+                  echo ${{ secrets.PAT_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             # 将镜像提交到镜像仓库
             - name: Push Image
               run: docker push ghcr.io/zhydada/em-v3-git:${{ github.ref_name }}
+            - name: Set image visibility to public
+              run: |
+                  TOKEN=$(echo "${{ secrets.GITHUB_TOKEN }}" | jq -Rr @uri)
+                  PACKAGE_VERSION_ID=$(curl -X GET -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github.v3+json" https://api.github.com/user/packages/container/em-v3-git/versions | jq '.[0].id')
+                  curl -X POST -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github.v3+json" https://api.github.com/user/packages/container/package/versions/$PACKAGE_VERSION_ID/visibility -d '{"visibility":"public"}'
     # 第二个工作-pull-docker
     pull-docker:
         needs: [build-and-push]
@@ -32,18 +37,17 @@ jobs:
             #  先登录到ghcr.io
             - name: Log in
               run: |
-                    echo ${{ secrets.PAT_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+                  echo ${{ secrets.PAT_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # 停止现在的所有容器并删除
+            - name: Remove Old Container
+              run: |
+                  docker rmi ghcr.io/zhydada/em-v3-git:${{ github.ref_name }}
 
             # 从ghcr.io拉取镜像
             - name: Pull Image
               run: docker pull ghcr.io/zhydada/em-v3-git:${{ github.ref_name }}
 
-            # 停止现在的所有容器并删除
-            - name: Remove Old Container
-              run: |
-                    docker stop $(docker ps -a -q)
-                    docker rm $(docker ps -a -q)
-            
             # 运行镜像
             - name: Run Image
-              run: docker run -d -p 80:80 ${{ secrets.DOCKER_REPOSITORY }}:${{ github.ref_name }}
+              run: docker run -d -p 80:80 ghcr.io/zhydada/em-v3-git:${{ github.ref_name }}

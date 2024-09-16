@@ -3,6 +3,8 @@ FROM node:20
 ENV NODE_VERSION=20.11.1
 
 LABEL org.opencontainers.image.source https://github.com/zhyDaDa/EndorsementMachine-v3
+LABEL org.opencontainers.image.description="EndorsementMachine-v3 Image" 
+LABEL org.opencontainers.image.licenses=MIT
 
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 RUN export NVM_DIR="$HOME/.nvm" && \
